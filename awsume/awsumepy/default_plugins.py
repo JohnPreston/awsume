@@ -1,3 +1,4 @@
+import re
 import argparse
 import configparser
 import json
@@ -18,6 +19,11 @@ from . lib import profile as profile_lib
 from . lib import cache as cache_lib
 from . lib.autoawsume import create_autoawsume_profile
 
+from boto3 import client as awsclient
+
+SRC_USER_PAT = re.compile(r'([\w+=,.@-]*)$')
+SRC_USER = SRC_USER.findall(client('sts').get_caller_identity()['Arn'])[0]
+
 
 def custom_duration_argument_type(string):
     number = int(string)
@@ -30,7 +36,7 @@ def custom_duration_argument_type(string):
 def add_arguments(config: dict, parser: argparse.ArgumentParser):
     logger.info('Adding arguments')
     parser.add_argument('-v', '--version',
-        action='store_true',
+5B        action='store_true',
         dest='version',
         help='Display the current version of awsume',
     )
@@ -358,7 +364,7 @@ def get_assume_role_credentials(config: dict, arguments: argparse.Namespace, pro
     role_session = aws_lib.assume_role(
         source_credentials,
         target_profile.get('role_arn'),
-        arguments.session_name or arguments.target_profile_name,
+        arguments.session_name or SRC_USER,
         region=region,
         external_id=external_id,
         role_duration=role_duration,
